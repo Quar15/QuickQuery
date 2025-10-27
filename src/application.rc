@@ -1,0 +1,25 @@
+GLFW_ICON ICON "icon.ico"
+
+1 VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"    // English US
+    BEGIN
+      //VALUE "CompanyName", "raylib technologies"
+      VALUE "FileDescription", "A cool app made with raylib (www.raylib.com)"
+      VALUE "FileVersion", "1.0.0"
+      VALUE "InternalName", "QQ"
+      VALUE "LegalCopyright", "(c) 2025 YOUR NAME"
+      //VALUE "OriginalFilename", "raylib_app"
+      VALUE "ProductName", "QuickQuery"
+      VALUE "ProductVersion", "1.0.0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1252    // English US
+  END
+END
