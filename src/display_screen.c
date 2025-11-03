@@ -2,9 +2,24 @@
 #include <stdio.h>
 
 #include "utilities.h"
+#include "assets.h"
 #include "display_screen.h"
 
-void DrawDisplayZone(Zone *zone)
+int countDigits(int n) {
+    int count = 0;
+
+    if (n == 0) return 1;
+    if (n < 0) n = -n;
+
+    while (n > 0) {
+        n /= 10;
+        count++;
+    }
+
+    return count;
+}
+
+void DrawDisplayZone(Zone *zone, Assets *assets)
 {
     BeginScissorMode(zone->bounds.x, zone->bounds.y, zone->bounds.width, zone->bounds.height);
     ClearBackground(BACKGROUND);
@@ -27,6 +42,7 @@ void DrawDisplayZone(Zone *zone)
 
     // Draw row counter
     int counterColumnWidth = 0;
+    int counterColumnCharactersCount = countDigits(MAX_ROWS);
     for (int row = 0; row < MAX_ROWS; row++) {
         int cellX = zone->bounds.x - zone->scroll.x;
         int cellY = zone->bounds.y + (row + 1) * cellHeight - zone->scroll.y;
@@ -39,8 +55,9 @@ void DrawDisplayZone(Zone *zone)
         DrawRectangleLinesEx((Rectangle){cellX, cellY, cellWidth + 1, cellHeight + 1}, 2, bg); // Draw cell border
         char rowText[8];
         snprintf(rowText, sizeof(rowText), "%d", row + 1);
-        counterColumnWidth = MeasureText(rowText, 20) + textPadding;
-        DrawText(rowText, cellX + textPadding, cellY + textPadding, 20, SURFACE_0); // Draw cell text
+        counterColumnWidth = MeasureText(rowText, 20) + (textPadding * 2);
+        int counterColumnLeftPadding = textPadding + (counterColumnCharactersCount - countDigits(row + 1)) * assets->mainFontCharacterWidth;
+        DrawTextEx(assets->mainFont, rowText, (Vector2){cellX + counterColumnLeftPadding, cellY + textPadding}, assets->mainFontSize, assets->mainFontSpacing, SURFACE_0); // Draw cell text
     }
     contentWidth += counterColumnWidth;
 
@@ -55,7 +72,7 @@ void DrawDisplayZone(Zone *zone)
         }
         DrawRectangle(cellX, cellY, cellWidth, cellHeight, bg); // Draw background
         DrawRectangleLinesEx((Rectangle){cellX, cellY, cellWidth + 1, cellHeight + 1}, 2, bg); // Draw cell border
-        DrawText(header[col], cellX + textPadding, cellY + textPadding, 20, TEXT); // Draw cell text
+        DrawTextEx(assets->mainFont, header[col], (Vector2){cellX + textPadding, cellY + textPadding}, assets->mainFontSize, assets->mainFontSpacing, TEXT); // Draw cell text
         contentWidth += cellWidth;
     }
 
@@ -84,7 +101,7 @@ void DrawDisplayZone(Zone *zone)
             DrawRectangleLinesEx((Rectangle){cellX, cellY, cellWidth + 1, cellHeight + 1}, 2, MANTLE);
 
             // Draw cell text
-            DrawText(gridData[row][col], cellX + textPadding, cellY + textPadding, 20, TEXT);
+            DrawTextEx(assets->mainFont, gridData[row][col], (Vector2){cellX + textPadding, cellY + textPadding}, assets->mainFontSize, assets->mainFontSpacing, TEXT); // Draw cell text
         }
          
         contentHeight += cellHeight;

@@ -1,6 +1,7 @@
 #include "raylib.h"
 
 #include "utilities.h"
+#include "assets.h"
 #include "display_screen.h"
 
 int main(void)
@@ -9,6 +10,9 @@ int main(void)
     int screenHeight = GetScreenHeight();
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screenWidth, screenHeight, "QQ");
+
+    Assets assets = {0};
+    LoadAssets(&assets);
 
     Splitter splitter;
     splitter.ratio = 0.5f;
@@ -52,14 +56,17 @@ int main(void)
         BeginDrawing();
         ClearBackground(BACKGROUND);
 
+        // DrawTextEx(fnt, "Font test", (Vector2){50, 50}, 32, 2.0f, TEXT);
+
         DrawZone(&topZone, BACKGROUND, TEXT);
-        DrawDisplayZone(&bottomZone);
+        DrawDisplayZone(&bottomZone, &assets);
 
         DrawRectangleRec(splitter.rect, splitter.dragging ? CRUST : SURFACE_1);
 
         EndDrawing();
     }
 
+    UnloadAssets(&assets);
     CloseWindow();
     return 0;
 }
