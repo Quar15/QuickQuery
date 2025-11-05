@@ -49,8 +49,8 @@ int main(void)
             bottomZone.contentSize = (Vector2){screenWidth, 2000};
 
         // Update scroll independently
-        UpdateZoneScroll(&topZone);
         UpdateZoneScroll(&bottomZone);
+        UpdateZoneScroll(&topZone);
 
         // --- Drawing ---
         BeginDrawing();
@@ -58,8 +58,8 @@ int main(void)
 
         // DrawTextEx(fnt, "Font test", (Vector2){50, 50}, 32, 2.0f, TEXT);
 
-        DrawZone(&topZone, BACKGROUND, TEXT);
         DrawDisplayZone(&bottomZone, &assets);
+        DrawZone(&topZone, BACKGROUND, TEXT);
 
         DrawRectangleRec(splitter.rect, splitter.dragging ? CRUST : SURFACE_1);
 
