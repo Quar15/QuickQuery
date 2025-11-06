@@ -1,4 +1,6 @@
 #include "raylib.h"
+#include <string.h>
+#include <stdlib.h>
 
 #include "utilities.h"
 
@@ -142,4 +144,60 @@ void DrawZone(Zone *zone, Color bgColor, Color contentColor)
     EndScissorMode();
 
     DrawScrollbars(zone);
+}
+
+void FreeGrid(GridData *g) {
+    for (int i = 0; i < g->cols; i++) {
+        free(g->header[i]);
+    }
+    for (int i = 0; i < g->rows; i++) {
+        for (int j = 0; j < g->cols; j++) {
+            free(g->data[i][j]);  // free each string
+        }
+        free(g->data[i]);
+    }
+    free(g->data);
+}
+
+void PrepareFakeGrid(GridData *grid) {
+    const int MAX_ROWS = 200;
+    const int MAX_COLS = 6;
+
+    grid->rows = MAX_ROWS;
+    grid->cols = MAX_COLS;
+
+    grid->header = malloc(grid->cols * sizeof(char *));
+    grid->header[0] = strdup("ID");
+    grid->header[1] = strdup("Name");
+    grid->header[2] = strdup("Age");
+    grid->header[3] = strdup("Job");
+    grid->header[4] = strdup("Country");
+    grid->header[5] = strdup("Very very long column name");
+
+    grid->data = malloc(grid->rows * sizeof(char **));
+    for (int i=0; i < grid->rows; i++) {
+        grid->data[i] = malloc(grid->cols * sizeof(char *));
+        for (int j = 0; j < grid->cols; j++)
+            grid->data[i][j] = NULL;
+    }
+    grid->data[0][0] = strdup("1");
+    grid->data[0][1] = strdup("Alice");
+    grid->data[0][2] = strdup("29");
+    grid->data[0][3] = strdup("Engineer");
+    grid->data[0][4] = strdup("USA");
+    grid->data[0][5] = strdup("A");
+
+    grid->data[1][0] = strdup("2");
+    grid->data[1][1] = strdup("Bob the super duper ulra very very good builder that is too long");
+    grid->data[1][2] = strdup("34");
+    grid->data[1][3] = strdup("Designer");
+    grid->data[1][4] = strdup("UK");
+    grid->data[1][5] = strdup("B");
+
+    grid->data[2][0] = strdup("3");
+    grid->data[2][1] = strdup("Charlie");
+    grid->data[2][2] = strdup("22");
+    grid->data[2][3] = strdup("Student");
+    grid->data[2][4] = strdup("Canada");
+    grid->data[2][5] = strdup("C");
 }

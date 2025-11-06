@@ -36,6 +36,13 @@ typedef struct Zone {
     Scrollbar hScrollbar;
 } Zone;
 
+typedef struct GridData {
+    char ***data;
+    char **header;
+    int rows;
+    int cols;
+} GridData;
+
 bool MouseInsideWindow(void);
 bool MouseInsideZone(Zone *zone);
 
@@ -46,5 +53,8 @@ void UpdateZoneScroll(Zone *zone);
 
 void HandleZoneSplit(Splitter *splitter, int screenWidth, int screenHeight);
 void DrawZone(Zone *zone, Color bgColor, Color contentColor);
+
+void FreeGrid(GridData *g);
+void PrepareFakeGrid(GridData *grid);
 
 #endif

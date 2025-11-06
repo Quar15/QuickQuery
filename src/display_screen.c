@@ -5,6 +5,7 @@
 #include "assets.h"
 #include "display_screen.h"
 
+
 int countDigits(int n) {
     int count = 0;
 
@@ -19,45 +20,66 @@ int countDigits(int n) {
     return count;
 }
 
+void calculateColumnsWidth(GridData *grid, int *columnsWidth, int textPadding, Assets *assets) {
+    const int maximumColWidth = 600;
+    const int minimumColWidth = 50;
+    for (int col = 0; col < grid->cols; col++) {
+        int headerWidth = MeasureTextEx(assets->mainFont, grid->header[col], assets->mainFontSize, assets->mainFontSpacing).x + (textPadding * 3);
+        int colWidth = headerWidth > minimumColWidth ? headerWidth : minimumColWidth;
+        for (int row = 0; row < grid->rows; row++) {
+            int textWidth = MeasureTextEx(assets->mainFont, grid->data[row][col], assets->mainFontSize, assets->mainFontSpacing).x + (textPadding * 5);
+            if (textWidth > colWidth) {
+                if (textWidth > maximumColWidth) {
+                    colWidth = maximumColWidth;
+                } else {
+                    colWidth = textWidth;
+                }
+            }
+        }
+        columnsWidth[col] = colWidth;
+    }
+}
+
 void DrawDisplayZone(Zone *zone, Assets *assets)
 {
     ClearBackground(BACKGROUND);
     Vector2 mouse = GetMousePosition();
 
-    const int MAX_ROWS = 20;
-    const int MAX_COLS = 6;
-    const char *header[6] = {"ID", "Name", "Age", "Job", "Country", "X"};
-    const char *gridData[20][6] = {
-        {"1", "Alice", "29", "Engineer", "USA", "A"},
-        {"2", "Bob", "34", "Designer", "UK", "B"},
-        {"3", "Charlie", "22", "Student", "Canada", "C"}
-    };  
-
-    const int cellWidth = 360;
     const int cellHeight = 30;
     const int textPadding = 8;
+
+    GridData grid;
+    PrepareFakeGrid(&grid);
+
+    int columnsWidth[grid.cols];
+    calculateColumnsWidth(&grid, columnsWidth, textPadding, assets);
+
     int contentWidth = 0;
     int contentHeight = 0;
 
     int counterColumnWidth = 0;
-    int counterColumnCharactersCount = countDigits(MAX_ROWS);
+    int counterColumnCharactersCount = countDigits(grid.rows);
     char rowText[8];
-    snprintf(rowText, sizeof(rowText), "%d", MAX_ROWS);
+    snprintf(rowText, sizeof(rowText), "%d", grid.rows);
     counterColumnWidth = MeasureTextEx(assets->mainFont, rowText, assets->mainFontSize, assets->mainFontSpacing).x + (textPadding * 2);
-    for (int col = 0; col < MAX_COLS; col++) {
-        contentWidth += cellWidth;
+    for (int col = 0; col < grid.cols; col++) {
+        contentWidth += columnsWidth[col];
     }
+    contentWidth += counterColumnWidth;
 
     BeginScissorMode(zone->bounds.x, zone->bounds.y, zone->bounds.width, zone->bounds.height);
     // Draw content cells
-    for (int row = 0; row < MAX_ROWS; row++) {
-        for (int col = 0; col < MAX_COLS; col++) {
-            int cellX = zone->bounds.x + col * cellWidth - zone->scroll.x + counterColumnWidth;
+    for (int row = 0; row < grid.rows; row++) {
+        for (int col = 0; col < grid.cols; col++) {
+            int cellX = zone->bounds.x - zone->scroll.x + counterColumnWidth;
+            for (int c = 0; c < col; c++) {
+                cellX += columnsWidth[c];
+            }
             int cellY = zone->bounds.y + (row + 1) * cellHeight - zone->scroll.y;
 
             Color bg = (row % 2 == 0) ? BACKGROUND : SURFACE_0;
             if (MouseInsideZone(zone)) {
-                if (mouse.x > cellX && mouse.x < cellX + cellWidth) {
+                if (mouse.x > cellX && mouse.x < cellX + columnsWidth[col]) {
                     if (mouse.y > cellY && mouse.y < cellY + cellHeight) {
                         bg = OVERLAY_0;
                     } else {
@@ -68,13 +90,13 @@ void DrawDisplayZone(Zone *zone, Assets *assets)
                 }
             }
 
-            DrawRectangle(cellX, cellY, cellWidth, cellHeight, bg);
+            DrawRectangle(cellX, cellY, columnsWidth[col], cellHeight, bg);
 
             // Draw cell border
-            DrawRectangleLinesEx((Rectangle){cellX, cellY, cellWidth + 1, cellHeight + 1}, 2, MANTLE);
+            DrawRectangleLinesEx((Rectangle){cellX, cellY, columnsWidth[col] + 1, cellHeight + 1}, 2, MANTLE);
 
             // Draw cell text
-            DrawTextEx(assets->mainFont, gridData[row][col], (Vector2){cellX + textPadding, cellY + textPadding}, assets->mainFontSize, assets->mainFontSpacing, TEXT); // Draw cell text
+            DrawTextEx(assets->mainFont, grid.data[row][col], (Vector2){cellX + textPadding, cellY + textPadding}, assets->mainFontSize, assets->mainFontSpacing, TEXT); // Draw cell text
         }
          
         contentHeight += cellHeight;
@@ -93,22 +115,24 @@ void DrawDisplayZone(Zone *zone, Assets *assets)
     EndScissorMode();
 
     // Draw header
-    for (int col = 0; col < MAX_COLS; col++) {
-        int cellX = zone->bounds.x + col * cellWidth - zone->scroll.x + counterColumnWidth;
+    for (int col = 0; col < grid.cols; col++) {
+        int cellX = zone->bounds.x - zone->scroll.x + counterColumnWidth;
+        for (int c = 0; c < col; c++) {
+            cellX += columnsWidth[c];
+        }
         int cellY = zone->bounds.y;
 
         Color bg = MANTLE;
-        if (MouseInsideZone(zone) && (mouse.x > cellX && mouse.x < cellX + cellWidth)) {
+        if (MouseInsideZone(zone) && (mouse.x > cellX && mouse.x < cellX + columnsWidth[col])) {
             bg = CRUST;
         }
-        DrawRectangle(cellX, cellY, cellWidth, cellHeight, bg); // Draw background
-        DrawRectangleLinesEx((Rectangle){cellX, cellY, cellWidth + 1, cellHeight + 1}, 2, bg); // Draw cell border
-        DrawTextEx(assets->mainFont, header[col], (Vector2){cellX + textPadding, cellY + textPadding}, assets->mainFontSize, assets->mainFontSpacing, TEXT); // Draw cell text
-        contentWidth += cellWidth;
+        DrawRectangle(cellX, cellY, columnsWidth[col], cellHeight, bg); // Draw background
+        DrawRectangleLinesEx((Rectangle){cellX, cellY, columnsWidth[col] + 1, cellHeight + 1}, 2, bg); // Draw cell border
+        DrawTextEx(assets->mainFont, grid.header[col], (Vector2){cellX + textPadding, cellY + textPadding}, assets->mainFontSize, assets->mainFontSpacing, TEXT); // Draw cell text
     }
 
     // Draw row counter
-    for (int row = 0; row < MAX_ROWS; row++) {
+    for (int row = 0; row < grid.rows; row++) {
         int cellX = zone->bounds.x;
         int cellY = zone->bounds.y + (row + 1) * cellHeight - zone->scroll.y;
 
@@ -126,6 +150,7 @@ void DrawDisplayZone(Zone *zone, Assets *assets)
     // Draw left upper corner
     DrawRectangle(zone->bounds.x, zone->bounds.y, counterColumnWidth, cellHeight, MANTLE);
 
-    contentWidth += counterColumnWidth;
     DrawScrollbars(zone);
+
+    FreeGrid(&grid);
 }
