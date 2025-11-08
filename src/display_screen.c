@@ -40,8 +40,45 @@ void calculateColumnsWidth(GridData *grid, int *columnsWidth, int textPadding, A
     }
 }
 
-void DrawDisplayZone(Zone *zone, Assets *assets)
-{
+void HandleDisplayZoneKeyShortcuts(Zone *zone, int cellHeight) {
+    if (IsKeyDown(KEY_LEFT_SHIFT)) {
+        if (IsKeyPressed(KEY_HOME)) {
+            zone->scroll.x = 0;
+        }
+        else if (IsKeyPressed(KEY_END)) {
+            zone->scroll.x = zone->contentSize.x - zone->bounds.width;
+        }
+    } else {
+        if (IsKeyPressed(KEY_HOME)) {
+            zone->scroll.y = 0;
+        }
+        else if (IsKeyPressed(KEY_END)) {
+            zone->scroll.y = zone->contentSize.y - zone->bounds.height;
+        }
+        else if (IsKeyPressed(KEY_PAGE_UP)) {
+            zone->scroll.y -= zone->bounds.y - cellHeight; // @TODO: Calculate proper size
+        }
+        else if (IsKeyPressed(KEY_PAGE_DOWN)) {
+            zone->scroll.y += zone->bounds.y - cellHeight; // @TODO: Calculate proper size
+        }
+        else if (IsKeyPressed(KEY_J) || IsKeyPressed(KEY_DOWN)) {
+            zone->scroll.y += cellHeight; // @TODO: Calculate proper size
+        }
+        else if (IsKeyPressed(KEY_K) || IsKeyPressed(KEY_UP)) {
+            zone->scroll.y -= cellHeight; // @TODO: Calculate proper size
+        }
+        else if (IsKeyPressed(KEY_H) || IsKeyPressed(KEY_LEFT)) {
+            zone->scroll.x -= 100; // @TODO: Calculate proper size
+        }
+        else if (IsKeyPressed(KEY_L) || IsKeyPressed(KEY_RIGHT)) {
+            zone->scroll.x += 100; // @TODO: Calculate proper size
+        }
+    }
+
+    ClampZoneScroll(zone);
+}
+
+void DrawDisplayZone(Zone *zone, Assets *assets) {
     ClearBackground(BACKGROUND);
     Vector2 mouse = GetMousePosition();
 
@@ -66,6 +103,9 @@ void DrawDisplayZone(Zone *zone, Assets *assets)
         contentWidth += columnsWidth[col];
     }
     contentWidth += counterColumnWidth;
+    if (MouseInsideZone(zone)) {
+        HandleDisplayZoneKeyShortcuts(zone, cellHeight);
+    }
 
     BeginScissorMode(zone->bounds.x, zone->bounds.y, zone->bounds.width, zone->bounds.height);
     // Draw content cells
